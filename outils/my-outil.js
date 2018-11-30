@@ -1,3 +1,45 @@
+
+    // 处理图片显示尺寸  jquery
+    window.initImgSize = function(box,img){
+        img.each(function(index,el){
+            if (el.complete) {
+                var box_w = box.width(),
+                    box_h = box.height(),
+                    img_w = $(el).width(),
+                    img_h = $(el).height();
+
+                if (parseFloat(box_w/box_h) > parseFloat(img_w/img_h)) {
+                    $(el).css({'width':'100%','height':'auto'});
+                    var move_h = -(($(el).height() - box_h)/2);
+                    $(el).css({'margin-top':move_h + 'px'});
+                }else{
+                    $(el).css({'width':'auto','height':'100%'});
+                    var move_w = -(($(el).width() - box_w)/2);
+                    $(el).css({'margin-left':move_w + 'px'});
+                }
+            }else{
+                $(el).load(function(){
+                    var box_w = box.width(),
+                        box_h = box.height(),
+                        img_w = $(el).width(),
+                        img_h = $(el).height();
+
+                    if (parseFloat(box_w/box_h) > parseFloat(img_w/img_h)) {
+                        $(el).css({'width':'100%','height':'auto'});
+                        var move_h = -(($(el).height() - box_h)/2);
+                        $(el).css({'margin-top':move_h + 'px'});
+                    }else{
+                        $(el).css({'width':'auto','height':'100%'});
+                        var move_w = -(($(el).width() - box_w)/2);
+                        $(el).css({'margin-left':move_w + 'px'});
+                    }
+                })
+            }
+
+        });
+    }
+
+
 // 判断输入是否是正确的邮箱格式
 function isAvailableEmail(sEmail) {
     var emailReg = /^([\w\.])+\@(([\w])+\.)+([\w]+)+$/;
@@ -49,6 +91,7 @@ function getUrlParam(sUrl, sKey) {
     var obj = {};
     for(var i=0,len=paramArr.length;i<len;i++){
         var param = paramArr[i].split("=");
+        param[1] = param[1] ? decodeURI(param[1]): true;
         if(obj[param[0]]){
             var arr = typeof obj[param[0]] == "object" ? obj[param[0]] : [obj[param[0]]];
             arr.push(param[1]);
@@ -64,6 +107,275 @@ function getUrlParam(sUrl, sKey) {
         return obj;
     }
 }
+
+// 小芋头君
+// 2.实现一个最简单的模板引擎
+// render('我是{{name}}，年龄{{age}}，性别{{sex}}',{
+// 	name:'姓名',
+// 	age:18
+// })
+
+// 结果： 我是姓名，年龄18，性别undefined。
+var render = function(tpl,data){
+	return tpl.replace(/\{\{(.+?)\}\}/g,function(m,m1){
+		return data[m1]
+	})
+}
+
+// 3.将一个任意长的数字变成逗号分割的格式
+// 	// 1234.56 => "1,234.56" , 123456789 => "123,456,789"
+// parseToMoney(1234.56) // return "1,234.56"
+function parseToMoney(money){
+    // 小数点不支持
+    return (''+money).replace(/(\d+?)(?=(\d{3})+$)/g, '$1,')
+
+}
+
+function toMoney(num){
+    num = num.toFixed(2);
+    num = parseFloat(num)
+    num = num.toLocaleString();
+    return num;//返回的是字符串23,245.12保留2位小数
+}
+
+function parseToMoney00(money){
+    var moneys = (money+'').split('.');
+    var zhen = (moneys[0]+"x").split('').reverse();
+    for(var i=1;i<zhen.length;i++){
+        if(i%4 === 0){
+            zhen.splice(i,0,',')
+        }
+    }
+    zhen = zhen.reverse().join('').slice(0,-1);
+    if(moneys[1]){
+        zhen = zhen + '.'+moneys[1]
+    }
+    return zhen;
+}
+
+
+// var string = "我的账户余额：2,235,467.20";
+// console.log(?);
+// 请用js计算出我到底有多少钱（输出Number类型数字，代码尽量简洁，考虑通用情况）
+function parseToNumber(string){
+    return new Number(string.replace(/[^0-9.]/g,''));
+}
+
+// 有一个全局变量 a，有一个全局函数 b，实现一个方法bindData，执行后，a的任何赋值都会触发b的执行。
+// var a = 1;
+// function b(){
+// 	console.log('a的值发生改变');
+// }
+// bindData();
+// a = 2; // 此时输出 a的值发生改变
+
+function bindData(target,event){
+    for(var key in target){
+        if(target.hasOwnProperty(key)){
+            (function(){   
+                var v= target[key] 
+                Object.defineProperty(target,key,{
+                    get:function(){
+                        return v
+                    },  
+                    set:function(newValue){
+                        v = newValue;
+                        event.call(this)
+                    }
+                })                        
+            })()
+        }
+    }
+}
+
+
+
+//6, 实现一个 js 的 class ，名字叫做：AnimateToNum，功能是从某个数字递增或者递减到另外一个数字，并且不管数字如何变化，都可以在指定的时间内完成。
+// var AnimateToNum = require("animate-num");
+// var numAnim = new AnimateToNum({
+//   animTime:2000, //每次数字变动持续的时间（ms），
+//   initNum:500, //初始化的数字
+//   onChange:function(num){
+//     console.log(num);
+//   }
+// });
+// numAnim.toNum(100); // 从500变化到100，用2000ms的时间，在onChange回调中会一直从500倒数到100
+function AnimateToNum(animTime,initNum){
+    this.animTime = animTime;
+    this.initNum = initNum;
+}
+AnimateToNum.prototype.log = function(){
+    console.log(this.animTime,this.initNum)
+}
+AnimateToNum.prototype.onChange = function(num){
+    console.log(num)
+}
+AnimateToNum.prototype.toNum = function(toNum){
+    var isPlus = toNum > this.initNum ? true : false; 
+    var per_time = Math.abs(this.animTime/(toNum - this.initNum));
+    var goChange = setInterval(function(){
+        if(isPlus){
+            console.log(this.initNum++);
+        }else{
+            console.log(this.initNum--);
+        }
+    },per_time);
+    if(toNum === this.initNum){
+        clearInterval(goChange);
+    }
+}
+
+
+var numAnim = new AnimateToNum({
+  animTime:2000, //每次数字变动持续的时间（ms），
+  initNum:500, //初始化的数字
+//   onChange:function(num){
+//     console.log(num);
+//   }
+});
+numAnim.toNum(200);
+
+//7， 请封装一个 CustomFetch 方法，利用原生的 fetch api，但是实现以下几个需求：
+// 所有请求默认带上一个 token，值是 xxx
+// 请求返回的时候，内部解析内容，并且判断 success 字段是否是 true，如果不是，在 catch 中可以拿到一个Error，message 和 code 是接口返回的对应的内容
+
+// CustomFetch("http://api.com/api").then((data)=>{
+//     console.log(data); // 如果后台返回 true
+// }).catch((e)=>{
+//     console.log(e.message); // 输出 “查询错误”
+// });
+ 
+// // 接口的返回模式
+// {
+//     success: false,
+//     code: 'QUERY_ERROR',
+//     data: {},
+//     message: '查询错误'
+// }
+function customFetch(url){
+    var myresponse = {};
+    var myHeader = new Headers();
+    myHeader.append('token',"test-token");
+    var request = new Request(url,{
+        headers: myHeader,
+        'content-type':'application/json',
+        
+    })
+    return fetch(request).then(function(response){
+        if(response.ok){
+            myresponse.success = true;
+            myresponse.code = "success";
+            myresponse.data = response.json();
+            myresponse.message = "查询成功"
+            return myresponse;
+        }else{
+            myresponse.success = false;
+            myresponse.code = "QUERY_ERROR";
+            myresponse.data = {};
+            myresponse.message = "查询错误"
+            return myresponse;
+        }
+    }).catch(function(err){
+        myresponse.success = false;
+            myresponse.code = "QUERY_ERROR";
+            myresponse.data = {};
+            myresponse.message = err.message;
+            return myresponse;
+    })
+}
+customFetch('http://new.mobapi.intocity.cn/api/sw/index').then(function(data){
+    if(data.success){
+        console.log('sucess',data)
+    }
+    console.log('sucess00')
+}).catch(function(err){
+    console.log('err',err);
+})
+
+//8， 将数字转换成中文大写的表示，处理到万级别，例如 12345 -> 一万二千三百四十五
+// function toLowerNum(){
+ 
+// }
+// console.log(toLowerNum(12345)); // 输出 一万二千三百四十五
+// console.log(toLowerNum(10001)); // 输出 一万零一
+// console.log(toLowerNum(10011)); // 输出 一万零十一
+// console.log(toLowerNum(10000)); // 输出 一万
+function toUpperNum(){
+    var num = ['零','一','二','三','四','五','六','七','八','九'];
+    var unit = ['万','千','百','十'];
+
+
+}
+function toLowerNum(num){
+	var number = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'] // 定义中文数字
+	var unit = ['', '十', '百', '千', '万'] // 定义中文基
+	var resultStr = []
+	var len = 0 // 数字长
+	var lastNumNotZero = false
+	while(num){
+		let n = num % 10
+		let u = len >= unit.length ? len % 5 + 1 : len % 5
+
+		// console.log(n, u, len)
+		// 添加基
+		// if(n || (len >= unit.length && lastNumNotZero))
+		if(
+			n // 当前位存在
+			|| // 或者
+			( u == unit.length - 1 && // u 和 长度均为 最后一位unit
+				len == unit.length - 1
+			)
+		)
+			resultStr.unshift(unit[u])
+
+		// 处理数
+		if(
+			n || lastNumNotZero // 当前位和前一位不都为零则处理
+			&& 
+			u !== unit.length - 1 // 且当前位不为最后一位基
+		) 
+			resultStr.unshift(number[n])
+		lastNumNotZero = !!n
+		len++
+		num = Math.floor(num / 10)
+	}
+	return resultStr.join('')
+}
+
+
+
+// 9. 算法题，实现一个函数，可以判断 a 字符串是否被包含在 b 字符串中
+// KMP 算法
+function isInString(){
+    var j = 0;
+    var m=0;
+    var result = false;
+    for(var i=0;i<a.length;i++){
+        while(j<b.length&&a[i] != b[j]){
+            j++;
+           m<a.length? 0: m;
+        }
+       
+        if(a[i]== b[j]){
+            console.log(a[i],b[j]);
+            m++;
+        }else{
+        m=0
+        }
+        j++;
+    }
+    if(m==a.length) result = true
+    return result;
+}
+var b='abcabcdef'
+var a='cdf'
+isInString(a,b)
+
+//10. 判断一个点是否在多边形内
+// 答案：从当前点画一条水平射线，判断射线与多边形各条边相交多少次，偶数次就是在多边形内
+
+
+
 
 /*
 找出元素 item 在给定数组 arr 中的位置
@@ -88,6 +400,15 @@ function sum(arr) {
         return pre+cur;
     })
 }
+
+// 如何知道一串字符串中每个字母出现的次数
+var arrString = 'abcdaabc';
+arrString.split('').reduce(function(res, cur) {
+    res[cur] ? res[cur] ++ : res[cur] = 1
+    return res;
+}, {})
+
+
 
 /*
 数组找出重复的值
